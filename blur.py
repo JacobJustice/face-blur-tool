@@ -1,4 +1,5 @@
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
@@ -10,7 +11,7 @@ author: Adrian Rosebrock
 
 blurs whole image and returns blurred image
 """
-def blur(image, factor=3.0):
+def blur(image, factor=2):
     # automatically determine the size of the blurring kernel based
     # on the spatial dimensions of the input image
     (h, w) = image.shape[:2]
@@ -24,6 +25,7 @@ def blur(image, factor=3.0):
     	kH -= 1
     # apply a Gaussian blur to the input image using our computed
     # kernel size
+
     return cv2.GaussianBlur(image, (kW, kH), 0)
 
 """
@@ -34,7 +36,7 @@ blur_faces: blurs every face in image
     @return: numpy image
 
 """
-def blur_faces(image, face_rects, factor=3.0):
+def blur_faces(image, face_rects, factor=1.5):
     pil_image = Image.fromarray(image)
 
         # for every set of face coordinates
@@ -42,9 +44,14 @@ def blur_faces(image, face_rects, factor=3.0):
             # isolate the face in the image
         face_image = image[y:y+h, x:x+w]
 
+            # show isolated face
+#        plt.imshow(convertToRGB(face_image))
+#        plt.show()
+
             # blur the isolated image
         face_image = blur(face_image, factor)
 
+            # show face after blur
 #        plt.imshow(convertToRGB(face_image))
 #        plt.show()
 
@@ -53,17 +60,24 @@ def blur_faces(image, face_rects, factor=3.0):
 
     return np.asarray(pil_image)
 
+# helper function to deal with opencv BGR nonsense
+def convertToRGB(image):
+    return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
 def main():
     import matplotlib.pyplot as plt
     import argparse
-    from face_detection import detect_faces_cascade
-    def convertToRGB(image):
-        return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    from face_detection import detect_faces_dnn
+
+    fig = plt.gcf()
+    fig.set_size_inches(20.5,12.5)
 
     # configure ArgumentParser
     ap = argparse.ArgumentParser()
     	# image is a required argument 
     ap.add_argument("-i", "--image", required=True,
+    	help="path to input image")
+    ap.add_argument("-c", "--confidence", required=False,
     	help="path to input image")
 
     args = vars(ap.parse_args())
@@ -72,9 +86,20 @@ def main():
     image = cv2.imread(args['image'])
     image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    faces_rects = detect_faces_cascade(image_gray)
-    image = blur_faces(image, faces_rects)
+    # show image before blurring
+    plt.imshow(convertToRGB(image))
+    plt.show()
 
+    if (args['confidence'] == None):
+        faces_rects = detect_faces_dnn(image)
+    else:
+        faces_rects = detect_faces_dnn(image, float(args['confidence']))
+    image = blur_faces(image, faces_rects)
+    cv2.imwrite("./outputs/output.png", image);
+
+    # show image after blurring
+    fig = plt.gcf()
+    fig.set_size_inches(20.5,12.5)
     plt.imshow(convertToRGB(image))
     plt.show()
 
