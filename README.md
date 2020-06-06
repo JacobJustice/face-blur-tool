@@ -4,7 +4,7 @@ Detects faces contained in an image and then blurs them. Inspired by the protest
 # How to use
 -i / --image        path to image you want to blur faces in
 
--c / --confidence   float from 0-1 describing the minimum confidence required to label a face (lower will mean more faces but more false positives, higher will mean less faces but less false positives)
+-c / --confidence   float from 0-1 describing the minimum confidence required to label a face. A lower value will mean more faces but more false positives, higher will mean less faces but less false positives. **OPTIONAL**
 
 `python3 blur.py -i <image_name> [-c <0.0 - 1.0>]`
 
